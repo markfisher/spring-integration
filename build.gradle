@@ -62,15 +62,8 @@ allprojects {
 
     // default set of maven repositories to be used when resolving dependencies
     repositories {
-        mavenRepo name: 'SpringSource Snapshot Repository', urls: 'http://maven.springframework.org/snapshot'
-        mavenRepo name: 'SpringSource Milestone Repository',  urls: 'http://maven.springframework.org/milestone'
-        mavenCentral()
-        // only really necessary for artifacts not yet in Maven Central, i.e. immediately post-release
-        mavenRepo name: 'SpringSource Release Repository', urls: 'http://maven.springframework.org/release'
-        // needed for bundlor:
-        mavenRepo name: 'SpringSource Release Bundle Repository', urls: 'http://repository.springsource.com/maven/bundles/release'
-        // needed for external dependencies required by bundlor:
-        mavenRepo name: 'SpringSource External Bundle Repository', urls: 'http://repository.springsource.com/maven/bundles/external'
+        mavenRepo name: 'SpringSource Libs Repo',
+            urls: 'http://repository.springsource.org/repo'
     }
 }
 
@@ -251,9 +244,6 @@ project('spring-integration-gemfire') {
         compile "org.springframework.data.gemfire:spring-gemfire:$springGemfireVersion"
         testCompile project(":spring-integration-stream")
         testCompile project(":spring-integration-test")
-    }
-    repositories {
-        mavenRepo urls: 'http://dist.gemstone.com/maven/release' // for gemfire
     }
 }
 
@@ -530,3 +520,42 @@ project('docs') {
 
 apply from: "$buildSrcDir/dist.gradle"
 apply from: "$buildSrcDir/checks.gradle"
+
+
+// -----------------------------------------------------------------------------
+// Configuration for publication to Artifactory
+// -----------------------------------------------------------------------------
+buildscript {
+    repositories {
+        mavenRepo(name: 'SpringSource Plugin Repo',
+            urls: 'http://repository.springsource.org/repo').setChecksums('sha1')
+    }
+    dependencies {
+        classpath(group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: '2.0.6')
+    }
+}
+
+configure(javaprojects + rootProject) {
+    apply plugin: 'artifactory'
+
+    // see http://wiki.jfrog.org/confluence/display/RTF/Gradle+Artifactory+Plugin
+    artifactory {
+        contextUrl = 'http://repository.springsource.org'
+        publish {
+            repository {
+                repoKey = 'libs-snapshot-local'
+                username = project.properties['REPO_USERNAME']
+                password = project.properties['REPO_PASSWORD']
+            }
+        }
+        resolve {
+            repository {
+                repoKey = 'repo'
+            }
+        }
+    }
+
+    artifactoryPublish.onlyIf {
+        project.hasProperty('REPO_USERNAME') && project.hasProperty('REPO_PASSWORD')
+    }
+}
