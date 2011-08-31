@@ -559,3 +559,5 @@ configure(javaprojects + rootProject) {
         project.hasProperty('REPO_USERNAME') && project.hasProperty('REPO_PASSWORD')
     }
 }
+
+task publish(dependsOn: [project(":docs").uploadArchives, artifactoryPublish])
