@@ -71,32 +71,12 @@
   </build>
   <repositories>
     <repository>
-      <id>http://download.java.net/maven/2</id>
-      <url>http://download.java.net/maven/2</url>
+      <id>SpringSource Libs Repo</id>
+      <url>http://repository.springsource.org/repo/</url>
     </repository>
     <repository>
-      <id>http://maven.springframework.org/milestone</id>
-      <url>http://maven.springframework.org/milestone</url>
-    </repository>
-    <repository>
-      <id>http://maven.springframework.org/release</id>
-      <url>http://maven.springframework.org/release</url>
-    </repository>
-    <repository>
-      <id>http://maven.springframework.org/snapshot</id>
-      <url>http://maven.springframework.org/snapshot</url>
-    </repository>
-    <repository>
-      <id>http://repository.springsource.com/maven/bundles/external</id>
-      <url>http://repository.springsource.com/maven/bundles/external</url>
-    </repository>
-    <repository>
-      <id>http://repository.springsource.com/maven/bundles/milestone</id>
-      <url>http://repository.springsource.com/maven/bundles/milestone</url>
-    </repository>
-    <repository>
-      <id>http://repository.springsource.com/maven/bundles/release</id>
-      <url>http://repository.springsource.com/maven/bundles/release</url>
+      <id>http://repository.springsource.org/repo</id>
+      <url>http://repository.springsource.org/repo/</url>
     </repository>
   </repositories>
   <dependencies>

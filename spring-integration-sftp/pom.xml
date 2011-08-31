@@ -71,33 +71,15 @@
   </build>
   <repositories>
     <repository>
-      <id>SpringSource External Bundle Repository</id>
-      <url>http://repository.springsource.com/maven/bundles/external/</url>
+      <id>SpringSource Libs Repo</id>
+      <url>http://repository.springsource.org/repo/</url>
     </repository>
     <repository>
-      <id>SpringSource Milestone Repository</id>
-      <url>http://maven.springframework.org/milestone/</url>
-    </repository>
-    <repository>
-      <id>SpringSource Release Bundle Repository</id>
-      <url>http://repository.springsource.com/maven/bundles/release/</url>
-    </repository>
-    <repository>
-      <id>SpringSource Release Repository</id>
-      <url>http://maven.springframework.org/release/</url>
-    </repository>
-    <repository>
-      <id>SpringSource Snapshot Repository</id>
-      <url>http://maven.springframework.org/snapshot/</url>
+      <id>http://repository.springsource.org/repo</id>
+      <url>http://repository.springsource.org/repo/</url>
     </repository>
   </repositories>
   <dependencies>
-    <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-file</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
-    </dependency>
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
@@ -106,15 +88,15 @@
     </dependency>
     <dependency>
       <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-stream</artifactId>
+      <artifactId>spring-integration-core</artifactId>
       <version>2.1.0.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.12</version>
-      <scope>test</scope>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-file</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>cglib</groupId>
@@ -123,10 +105,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.12</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
@@ -182,6 +164,12 @@
       <artifactId>junit-dep</artifactId>
       <version>4.8.2</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-stream</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
   <properties>
