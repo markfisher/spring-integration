@@ -72,23 +72,99 @@ public class PriorityChannelTests {
 	}
 
 	@Test
-	public void testCustomComparator() {
-		PriorityChannel channel = new PriorityChannel(5, new StringPayloadComparator());
-		Message<?> messageA = new GenericMessage<String>("A");
-		Message<?> messageB = new GenericMessage<String>("B");
-		Message<?> messageC = new GenericMessage<String>("C");
-		Message<?> messageD = new GenericMessage<String>("D");
-		Message<?> messageE = new GenericMessage<String>("E");
-		channel.send(messageC);
-		channel.send(messageA);
-		channel.send(messageE);
-		channel.send(messageD);
-		channel.send(messageB);
-		assertEquals("A", channel.receive(0).getPayload());
-		assertEquals("B", channel.receive(0).getPayload());
-		assertEquals("C", channel.receive(0).getPayload());
-		assertEquals("D", channel.receive(0).getPayload());
-		assertEquals("E", channel.receive(0).getPayload());		
+	public void testWithCustomComparator() {
+		PriorityChannel channel = new PriorityChannel(10, new FooHeaderComparator());
+		Message<?> message1 = MessageBuilder.withPayload(1).setHeader("foo", 1).build();
+		Message<?> message2 = MessageBuilder.withPayload(2).setHeader("foo", 1).build();
+		Message<?> message3 = MessageBuilder.withPayload(3).setHeader("foo", 1).build();
+		Message<?> message4 = MessageBuilder.withPayload(4).build();
+		Message<?> message5 = MessageBuilder.withPayload(5).setHeader("foo", 3).build();
+		
+		Message<?> message6 = MessageBuilder.withPayload(6).setHeader("foo", 3).build();
+		Message<?> message7 = MessageBuilder.withPayload(7).setHeader("foo", 4).build();
+		Message<?> message8 = MessageBuilder.withPayload(8).setHeader("foo", 4).build();
+		
+		
+		channel.send(message1);
+		channel.send(message2);
+		channel.send(message3);
+		channel.send(message4);
+		channel.send(message5);
+		channel.send(message6);
+		channel.send(message7);
+		channel.send(message8);
+		
+		Object receivedOne = channel.receive(0).getPayload();
+		Object receivedTwo = channel.receive(0).getPayload();
+		Object receivedThree = channel.receive(0).getPayload();
+		Object receivedFour = channel.receive(0).getPayload();
+		Object receivedFive = channel.receive(0).getPayload();
+		Object receivedSix = channel.receive(0).getPayload();
+		Object receivedSeven = channel.receive(0).getPayload();
+		Object receivedEight = channel.receive(0).getPayload();
+		
+		System.out.println(receivedOne);
+		System.out.println(receivedTwo);
+		System.out.println(receivedThree);
+		System.out.println(receivedFour);
+		System.out.println(receivedFive);
+		System.out.println(receivedSix);
+		System.out.println(receivedSeven);
+		System.out.println(receivedEight);
+		
+		assertEquals(7, receivedOne);
+		assertEquals(8, receivedTwo);
+		assertEquals(5, receivedThree);
+		assertEquals(6, receivedFour);
+		assertEquals(1, receivedFive);
+		assertEquals(2, receivedSix);
+		assertEquals(3, receivedSeven);
+		assertEquals(4, receivedEight);
+	}
+	
+	@Test
+	public void testWithDefaultComparator() {
+		PriorityChannel channel = new PriorityChannel();
+		Message<?> message1 = MessageBuilder.withPayload(1).setPriority(1).build();
+		Message<?> message2 = MessageBuilder.withPayload(2).setPriority(1).build();
+		Message<?> message3 = MessageBuilder.withPayload(3).setPriority(1).build();
+		Message<?> message4 = MessageBuilder.withPayload(4).setPriority(2).build();
+		Message<?> message5 = MessageBuilder.withPayload(5).setPriority(2).build();
+		
+		Message<?> message6 = MessageBuilder.withPayload(6).build();
+		Message<?> message7 = MessageBuilder.withPayload(7).build();
+		
+		channel.send(message1);
+		channel.send(message2);
+		channel.send(message3);
+		channel.send(message4);
+		channel.send(message5);
+		channel.send(message6);
+		channel.send(message7);
+		
+		Object receivedOne = channel.receive(0).getPayload();
+		Object receivedTwo = channel.receive(0).getPayload();
+		Object receivedThree = channel.receive(0).getPayload();
+		Object receivedFour = channel.receive(0).getPayload();
+		Object receivedFive = channel.receive(0).getPayload();
+		Object receivedSix = channel.receive(0).getPayload();
+		Object receivedSeven = channel.receive(0).getPayload();
+		
+		System.out.println(receivedOne);
+		System.out.println(receivedTwo);
+		System.out.println(receivedThree);
+		System.out.println(receivedFour);
+		System.out.println(receivedFive);
+		System.out.println(receivedSix);
+		System.out.println(receivedSeven);
+		
+		assertEquals(4, receivedOne);
+		assertEquals(5, receivedTwo);
+		assertEquals(1, receivedThree);
+		assertEquals(2, receivedFour);
+		assertEquals(3, receivedFive);
+		assertEquals(6, receivedSix);
+		assertEquals(7, receivedSeven);		
 	}
 
 	@Test
@@ -203,7 +279,17 @@ public class PriorityChannelTests {
 		public int compare(Message<?> message1, Message<?> message2) {
 			String s1 = (String) message1.getPayload();
 			String s2 = (String) message2.getPayload();
-			return s1.compareTo(s2);
+			return s1.compareTo(s2); 
+		}	
+	}
+	
+	public static class FooHeaderComparator implements Comparator<Message<?>> {
+		public int compare(Message<?> message1, Message<?> message2) {
+			Integer foo1 = (Integer) message1.getHeaders().get("foo");
+			Integer foo2 = (Integer) message2.getHeaders().get("foo");
+			foo1 = foo1 != null ? foo1 : 0;
+			foo2 = foo2 != null ? foo2 : 0;
+			return foo2.compareTo(foo1);
 		}	
 	}
 
