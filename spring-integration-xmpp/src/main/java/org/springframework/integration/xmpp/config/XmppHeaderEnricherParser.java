@@ -28,6 +28,7 @@ import org.springframework.integration.xmpp.XmppHeaders;
 public class XmppHeaderEnricherParser extends HeaderEnricherParserSupport {
 
 	public XmppHeaderEnricherParser() {
+		// TODO: deprecate these elements in favor of just 'to' and 'thread' (and the corresponding constants)
 		this.addElementToHeaderMapping("chat-to", XmppHeaders.CHAT_TO);
 		this.addElementToHeaderMapping("chat-thread-id", XmppHeaders.CHAT_THREAD_ID);
 	}
