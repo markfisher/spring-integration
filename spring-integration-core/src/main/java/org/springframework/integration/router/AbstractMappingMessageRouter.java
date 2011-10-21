@@ -19,9 +19,9 @@ package org.springframework.integration.router;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.BeanFactory;
@@ -42,6 +42,8 @@ import org.springframework.util.StringUtils;
  * @author Mark Fisher
  * @author Oleg Zhurakousky
  * @author Gunnar Hillert
+ * 
+ * @since 2.1
  */
 @ManagedResource
 public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter {
@@ -56,6 +58,13 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	private volatile boolean resolutionRequired = true;
 
+
+	/**
+	 * This may be overridden by subclasses. The default is -1, unlimited.
+	 */
+	protected int getMaxDestinations() {
+		return -1;
+	}
 
 	/**
 	 * Provide mappings from channel keys to channel names.
@@ -98,14 +107,6 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	}
 
 	/**
-	 * Returns an unmodifiable version of the channel mappings.
-	 * This is intended for use by subclasses only.
-	 */
-	protected Map<String, String> getChannelMappings() {
-		return Collections.unmodifiableMap(this.channelMappings);
-	}
-
-	/**
 	 * Add a channel mapping from the provided key to channel name.
 	 */
 	@ManagedOperation
@@ -136,12 +137,28 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 	 */
 	protected abstract List<Object> getChannelKeys(Message<?> message);
 
+	protected boolean shouldFallbackToDirectChannelLookup() {
+		return true;
+	}
 
 	@Override
 	protected Collection<MessageChannel> determineTargetChannels(Message<?> message) {
 		Collection<MessageChannel> channels = new ArrayList<MessageChannel>();
 		Collection<Object> channelKeys = this.getChannelKeys(message);
+		if (!this.shouldFallbackToDirectChannelLookup()) {
+			channelKeys = this.retainMappedKeysOnly(channelKeys, this.channelMappings.keySet());
+		}
 		addToCollection(channels, channelKeys, message);
+		if (getMaxDestinations() > 0) {
+			List<MessageChannel> reduced = new ArrayList<MessageChannel>();
+			for (MessageChannel next : channels) {
+				reduced.add(next);
+				if (reduced.size() >= getMaxDestinations()) {
+					break;
+				}
+			}
+			channels = reduced;
+		}
 		return channels;
 	}
 
@@ -167,7 +184,9 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 
 	private void addChannelFromString(Collection<MessageChannel> channels, String channelKey, Message<?> message) {
 		if (channelKey.indexOf(',') != -1) {
-			for (String name : StringUtils.tokenizeToStringArray(channelKey, ",")) {
+			String[] array = StringUtils.tokenizeToStringArray(channelKey, ",");
+			this.checkForAmbiguity(array, channels, message);
+			for (String name : array) {
 				addChannelFromString(channels, name, message);
 			}
 			return;
@@ -203,6 +222,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 				channels.add((MessageChannel) channelKey);
 			}
 			else if (channelKey instanceof MessageChannel[]) {
+				this.checkForAmbiguity((MessageChannel[]) channelKey, channels, message);
 				channels.addAll(Arrays.asList((MessageChannel[]) channelKey));
 			}
 			else if (channelKey instanceof String) {
@@ -214,6 +234,7 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 				}
 			}
 			else if (channelKey instanceof Collection) {
+				this.checkForAmbiguity((Collection<?>) channelKey, channels, message);
 				addToCollection(channels, (Collection<?>) channelKey, message);
 			}
 			else if (this.getRequiredConversionService().canConvert(channelKey.getClass(), String.class)) {
@@ -223,6 +244,51 @@ public abstract class AbstractMappingMessageRouter extends AbstractMessageRouter
 				throw new MessagingException("unsupported return type for router [" + channelKey.getClass() + "]");
 			}
 		}
+	}
+
+	public <T> void checkForAmbiguity(T[] newChannels, Collection<MessageChannel> existingChannels, Message<?> message) { 
+		this.checkForAmbiguity(Arrays.asList(newChannels),existingChannels, message);
+	}
+
+	public <T> void checkForAmbiguity(Collection<T> newChannels, Collection<MessageChannel> existingChannels, Message<?> message) {
+		if (this.getMaxDestinations() > -1 && (existingChannels.size() + newChannels.size() > this.getMaxDestinations())) {
+			// adding all elements of this collection would create an ambiguity at the max threshold level
+			throw new IllegalStateException(//too many matches...?
+					"Unresolvable ambiguity while attempting to find closest match");// for [" + type.getName() + "]. Found: " + matches);
+		}
+	}
+
+	private List<Object> retainMappedKeysOnly(Collection<Object> candidateKeys, Set<String> mappedKeys) {
+		List<Object> reduced = new ArrayList<Object>();
+		for (Object candidateKey : candidateKeys) {
+			if (candidateKey instanceof Collection) {
+				List<Object> keepers = new ArrayList<Object>();
+				for (Object key : (Collection<?>) candidateKey) {
+					if (mappedKeys.contains(key)) {
+						keepers.add(key);
+					}
+				}
+				if (!keepers.isEmpty()) {
+					reduced.add(keepers);
+				}
+			}
+			if (candidateKey instanceof String) {
+				List<String> keepers = new ArrayList<String>();
+				String[] array = StringUtils.commaDelimitedListToStringArray((String) candidateKey);
+				for (String s: array) {
+					if (mappedKeys.contains(s)) {
+						keepers.add(s);
+					}
+				}
+				if (!keepers.isEmpty()) {
+					reduced.add(StringUtils.collectionToCommaDelimitedString(keepers));
+				}
+			}
+			else if (mappedKeys.contains(candidateKey)) {
+				reduced.add(candidateKey);
+			}
+		}
+		return reduced;
 	}
 
 }

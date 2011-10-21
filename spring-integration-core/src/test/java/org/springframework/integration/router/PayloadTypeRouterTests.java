@@ -56,13 +56,13 @@ public class PayloadTypeRouterTests {
 		
 		Message<String> message1 = new GenericMessage<String>("test");
 		Message<Integer> message2 = new GenericMessage<Integer>(123);
-		assertEquals(1, router.getChannelKeys(message1).size());
+		assertEquals(1, router.determineTargetChannels(message1).size());
 		
 		assertNull(stringChannel.receive(0));
 		router.handleMessage(message1);
 		assertEquals(message1, stringChannel.receive(0));
 		
-		assertEquals(1, router.getChannelKeys(message2).size());
+		assertEquals(1, router.determineTargetChannels(message2).size());
 		
 		assertNull(integerChannel.receive(0));
 		router.handleMessage(message2);
@@ -72,7 +72,7 @@ public class PayloadTypeRouterTests {
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(String.class.getName(), "newChannel");
-		assertEquals(1, router.getChannelKeys(message1).size());
+		assertEquals(1, router.determineTargetChannels(message1).size());
 
 		assertNull(newChannel.receive(0));
 		router.handleMessage(message1);
@@ -122,7 +122,7 @@ public class PayloadTypeRouterTests {
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(Integer.class.getName(), "newChannel");
-		assertEquals(1, router.getChannelKeys(message).size());
+		assertEquals(1, router.determineTargetChannels(message).size());
 		router.handleMessage(message);
 		result = newChannel.receive(10);
 		assertNotNull(result);
@@ -340,7 +340,7 @@ public class PayloadTypeRouterTests {
 		QueueChannel newChannel = new QueueChannel();
 		beanFactory.registerSingleton("newChannel", newChannel);
 		router.setChannelMapping(Integer.class.getName(), "newChannel");
-		assertEquals(1, router.getChannelKeys(message).size());
+		assertEquals(1, router.determineTargetChannels(message).size());
 		router.handleMessage(message);
 		result = newChannel.receive(10);
 		assertNotNull(result);

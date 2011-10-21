@@ -16,7 +16,7 @@
 
 package org.springframework.integration.router;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.integration.Message;
@@ -33,20 +33,28 @@ import org.springframework.integration.MessageChannel;
 public class ErrorMessageExceptionTypeRouter extends AbstractMappingMessageRouter {
 
 	@Override
+	protected int getMaxDestinations() {
+		return 1;
+	}
+
+	@Override
+	protected boolean shouldFallbackToDirectChannelLookup() {
+		return false;
+	}
+
+	@Override
 	protected List<Object> getChannelKeys(Message<?> message) {
-		String mostSpecificCause = null;
+		List<Object> causeList = new ArrayList<Object>();
 		Object payload = message.getPayload();
 		if (payload instanceof Throwable) {
 			Throwable cause = (Throwable) payload;
 			while (cause != null) {
 				String causeName = cause.getClass().getName();
-				if (this.getChannelMappings().keySet().contains(causeName)) {
-					mostSpecificCause = causeName;
-				}
+				causeList.add(0, causeName);
 				cause = cause.getCause();
 			}
 		}
-		return Collections.singletonList((Object) mostSpecificCause);
+		return causeList;
 	}
 
 }
