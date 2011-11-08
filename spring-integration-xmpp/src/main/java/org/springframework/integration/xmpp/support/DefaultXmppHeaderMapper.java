@@ -18,6 +18,7 @@ package org.springframework.integration.xmpp.support;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.jivesoftware.smack.packet.Message;
@@ -125,6 +126,12 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	@Override
 	protected void populateOutboundUserDefinedHeader(String headerName, Object headerValue, Message target) {
 		target.setProperty(headerName, headerValue);
+	}
+
+	@Override
+	protected List<String> getOutboundStandardHeaderNames() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

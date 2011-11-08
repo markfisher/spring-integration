@@ -16,8 +16,10 @@
 
 package org.springframework.integration.amqp.support;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.amqp.core.MessageDeliveryMode;
@@ -44,8 +46,32 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessageProperties> implements AmqpHeaderMapper {
 
+	private static final List<String> STANDARD_HEADER_NAMES = new ArrayList<String>();
+
+	static {
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.APP_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.CLUSTER_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_ENCODING);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_LENGTH);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.CONTENT_TYPE);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.CORRELATION_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.DELIVERY_MODE);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.DELIVERY_TAG);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.EXPIRATION);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.MESSAGE_COUNT);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.MESSAGE_ID);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_EXCHANGE);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.RECEIVED_ROUTING_KEY);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.REDELIVERED);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.REPLY_TO);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.TIMESTAMP);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.TYPE);
+		STANDARD_HEADER_NAMES.add(AmqpHeaders.USER_ID);
+	}
+
 	public DefaultAmqpHeaderMapper() {
 		super(AmqpHeaders.PREFIX);
+		setOutboundHeaderNames(STANDARD_HEADER_NAMES.toArray(new String[0]));
 	}
 
 
@@ -240,6 +266,12 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		if (!amqpMessageProperties.getHeaders().containsKey(headerName)) {
 			amqpMessageProperties.setHeader(headerName, headerValue);
 		}
+	}
+
+
+	@Override
+	protected List<String> getOutboundStandardHeaderNames() {
+		return STANDARD_HEADER_NAMES;
 	}
 
 }

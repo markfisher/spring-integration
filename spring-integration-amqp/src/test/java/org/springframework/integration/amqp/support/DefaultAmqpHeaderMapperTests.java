@@ -39,6 +39,7 @@ public class DefaultAmqpHeaderMapperTests {
 	@Test
 	public void fromHeaders() {
 		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		//headerMapper.setOutboundHeaderNames(new String[] {AmqpHeaders.APP_ID});
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put(AmqpHeaders.APP_ID, "test.appId");
 		headerMap.put(AmqpHeaders.CLUSTER_ID, "test.clusterId");

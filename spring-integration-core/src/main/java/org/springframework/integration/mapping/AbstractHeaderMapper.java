@@ -16,13 +16,14 @@
 
 package org.springframework.integration.mapping;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.springframework.integration.MessageHeaders;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
@@ -48,6 +49,10 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 
 	private final String standardHeaderPrefix;
 
+	private volatile String[] inboundHeaderNames = new String[0];
+
+	private volatile String[] outboundHeaderNames = new String[0];
+
 	private volatile String inboundPrefix = "";
 
 	private volatile String outboundPrefix = "";
@@ -57,6 +62,37 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 		this.standardHeaderPrefix = standardHeaderPrefix;
 	}
 
+	/*protected AbstractHeaderMapper(Class headersClass) {
+		try {
+			Field prefixField = headersClass.getField("PREFIX");
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}*/
+
+	/**
+	 * Provide the header names that should be mapped from a request (for inbound adapters)
+	 * or response (for outbound adapters) to a Spring Integration Message's headers.
+	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
+	 * <p>
+	 * This will match the header name directly or, for non-standard headers, it will match
+	 * the header name prefixed with the value specified by {@link #setInboundPrefix(String)}.
+	 */
+	public void setInboundHeaderNames(String[] inboundHeaderNames) {
+		this.inboundHeaderNames = (inboundHeaderNames != null) ? inboundHeaderNames : new String[0];
+	}
+
+	/**
+	 * Provide the header names that should be mapped to a request (for outbound adapters)
+	 * or response (for inbound adapters) from a Spring Integration Message's headers.
+	 * The values can also contain simple wildcard patterns (e.g. "foo*" or "*foo") to be matched.
+	 * <p>
+	 * Any non-standard headers will be prefixed with the value specified by {@link #setOutboundPrefix(String)}.
+	 */
+	public void setOutboundHeaderNames(String[] outboundHeaderNames) {
+		this.outboundHeaderNames = (outboundHeaderNames != null) ? outboundHeaderNames : new String[0];
+	}
 
 	/**
 	 * Specify a prefix to be prepended to the integration message header name for any
@@ -89,7 +125,13 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 	 */
 	public void fromHeaders(MessageHeaders headers, T target) {
 		try {
-			this.populateOutboundStandardHeaders(headers, target);
+			Map<String, Object> subset = new HashMap<String, Object>();
+			for (String headerName : headers.keySet()) {
+				if (this.getOutboundStandardHeaderNames().contains(headerName) && this.shouldMapOutboundHeader(headerName)) {
+					subset.put(headerName, headers.get(headerName));
+				}
+			}
+			this.populateOutboundStandardHeaders(new MessageHeaders(subset), target);
 			this.populateOutboundUserDefinedHeaders(headers, target);
 		}
 		catch (Exception e) {
@@ -151,9 +193,17 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 		}
 	}
 
+	private boolean shouldMapInboundHeader(String headerName) {
+		return StringUtils.hasText(headerName)
+				&& ObjectUtils.containsElement(this.inboundHeaderNames, headerName)
+				//&& (standardHeaderPrefix == null || !headerName.startsWith(this.standardHeaderPrefix))
+				&& !ObjectUtils.containsElement(TRANSIENT_HEADER_NAMES, headerName);
+	}
+
 	private boolean shouldMapOutboundHeader(String headerName) {
 		return StringUtils.hasText(headerName)
-				&& (standardHeaderPrefix == null || !headerName.startsWith(this.standardHeaderPrefix))
+				&& ObjectUtils.containsElement(this.outboundHeaderNames, headerName)
+				//&& (standardHeaderPrefix == null || !headerName.startsWith(this.standardHeaderPrefix))
 				&& !ObjectUtils.containsElement(TRANSIENT_HEADER_NAMES, headerName);
 	}
 
@@ -191,11 +241,14 @@ public abstract class AbstractHeaderMapper<T> implements HeaderMapper<T> {
 		return headerName;
 	}
 
+	protected abstract List<String> getOutboundStandardHeaderNames();
+
 	protected abstract Map<String, Object> extractInboundStandardHeaders(T source);
 
 	protected abstract Map<String, Object> extractInboundUserDefinedHeaders(T source);
 
 	protected abstract void populateOutboundStandardHeaders(MessageHeaders headers, T target);
+	//protected abstract void populateOutboundStandardHeader(String headerName, Object headerValue, T target);
 
 	protected abstract void populateOutboundUserDefinedHeader(String headerName, Object headerValue, T target);
 
