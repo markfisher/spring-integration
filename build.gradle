@@ -36,6 +36,15 @@ abbreviation = 'INT'
 apply plugin: 'base'
 apply plugin: 'idea'
 
+buildscript {
+    repositories {
+        mavenRepo url: 'https://repo.springsource.org/plugins-snapshot'
+    }
+    dependencies {
+        classpath 'org.springframework.build.docbook:docbook-reference-plugin:1.0.0-SNAPSHOT'
+    }
+}
+
 def buildSrcDir = "$rootDir/buildSrc"
 apply from: "$buildSrcDir/wrapper.gradle"
 apply from: "$buildSrcDir/maven-root-pom.gradle"
@@ -554,7 +563,11 @@ project('spring-integration-xmpp') {
 // Configuration for the docs subproject
 // -----------------------------------------------------------------------------
 project('docs') {
-    apply from: "$buildSrcDir/docs.gradle"
+    apply plugin: 'docbook-reference'
+
+    reference {
+        sourceDir = file('src/reference/docbook')
+    }
 }
 
 apply from: "$buildSrcDir/dist.gradle"
