@@ -46,7 +46,6 @@ buildscript {
 }
 
 def buildSrcDir = "$rootDir/buildSrc"
-apply from: "$buildSrcDir/wrapper.gradle"
 apply from: "$buildSrcDir/maven-root-pom.gradle"
 
 // Tie pom generation into the standard build lifecycle (INT-1609)
@@ -572,3 +571,8 @@ project('docs') {
 
 apply from: "$buildSrcDir/dist.gradle"
 apply from: "$buildSrcDir/checks.gradle"
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.0-milestone-5'
+    jarFile = '.wrapper/gradle-wrapper.jar'
+}
