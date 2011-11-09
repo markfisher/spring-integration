@@ -68,17 +68,8 @@ allprojects {
     // @see gradle.properties for the declaration of this property.
     version = new Version(springIntegrationVersion)
 
-    // default set of maven repositories to be used when resolving dependencies
     repositories {
-        //mavenRepo name: 'SpringSource Snapshot Repository', urls: 'http://maven.springframework.org/snapshot'
-        mavenRepo name: 'SpringSource Milestone Repository',  urls: 'http://maven.springframework.org/milestone'
-        mavenCentral()
-        // only really necessary for artifacts not yet in Maven Central, i.e. immediately post-release
-        mavenRepo name: 'SpringSource Release Repository', urls: 'http://maven.springframework.org/release'
-        // needed for bundlor:
-        mavenRepo name: 'SpringSource Release Bundle Repository', urls: 'http://repository.springsource.com/maven/bundles/release'
-        // needed for external dependencies required by bundlor:
-        mavenRepo name: 'SpringSource External Bundle Repository', urls: 'http://repository.springsource.com/maven/bundles/external'
+        mavenRepo url: 'http://repo.springsource.org/libs-milestone'
     }
 }
 
@@ -269,9 +260,6 @@ project('spring-integration-gemfire') {
         compile "org.springframework:spring-tx:$springVersion"
         testCompile project(":spring-integration-stream")
         testCompile project(":spring-integration-test")
-    }
-    repositories {
-        mavenRepo urls: 'http://dist.gemstone.com/maven/release' // for gemfire
     }
 }
 
