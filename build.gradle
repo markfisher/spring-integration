@@ -116,7 +116,7 @@ configure(javaprojects) {
     libsSrcDir = new File(libsDir, 'src')
 
     // add tasks for creating source jars and generating poms etc
-    apply from: "$buildSrcDir/maven-deployment.gradle"
+    // apply from: "$buildSrcDir/maven-deployment.gradle" // TODO deal with maven-deployment
 
     // add tasks for finding and publishing .xsd files
     apply from: "$buildSrcDir/schema-publication.gradle"
@@ -165,7 +165,7 @@ configure(javaprojects) {
     [compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
 
     // Tie pom generation into the standard build lifecycle (INT-1609)
-    assemble.dependsOn generatePom
+    // assemble.dependsOn generatePom // TODO eliminate generatePom (sonar stuff)
 
     test {
         // suppress all console output during testing unless running `gradle -i`
