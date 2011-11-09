@@ -46,10 +46,10 @@ buildscript {
 }
 
 def buildSrcDir = "$rootDir/buildSrc"
-apply from: "$buildSrcDir/maven-root-pom.gradle"
+// apply from: "$buildSrcDir/maven-root-pom.gradle" // TODO deal with root pom
 
 // Tie pom generation into the standard build lifecycle (INT-1609)
-assemble.dependsOn generatePom
+// assemble.dependsOn generatePom // TODO deal with root pom generation
 
 
 // -----------------------------------------------------------------------------
