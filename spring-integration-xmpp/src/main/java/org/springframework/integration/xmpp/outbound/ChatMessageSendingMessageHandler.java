@@ -38,7 +38,7 @@ import org.springframework.util.StringUtils;
  */
 public class ChatMessageSendingMessageHandler extends AbstractXmppConnectionAwareMessageHandler {
 
-	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper();
+	private volatile XmppHeaderMapper headerMapper = new DefaultXmppHeaderMapper(true);
 
 
 	public ChatMessageSendingMessageHandler() {

@@ -60,7 +60,7 @@ public class AmqpOutboundEndpoint extends AbstractReplyProducingMessageHandler {
 
 	private volatile ExpressionEvaluatingMessageProcessor<String> exchangeNameGenerator;
 
-	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+	private volatile AmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
 
 
 	@Override

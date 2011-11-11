@@ -38,8 +38,8 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void fromHeaders() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
-		//headerMapper.setOutboundHeaderNames(new String[] {AmqpHeaders.APP_ID});
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
+		//headerMapper.setOutboundHeaderNames(new String[] {AmqpHeaders.APP_ID, AmqpHeaders.CLUSTER_ID});
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put(AmqpHeaders.APP_ID, "test.appId");
 		headerMap.put(AmqpHeaders.CLUSTER_ID, "test.clusterId");
@@ -84,7 +84,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void toHeaders() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
 		MessageProperties amqpProperties = new MessageProperties();
 		amqpProperties.setAppId("test.appId");
 		amqpProperties.setClusterId("test.clusterId");
@@ -129,7 +129,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void replyChannelNotMappedToAmqpProperties() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put(MessageHeaders.REPLY_CHANNEL, "foo");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
@@ -140,7 +140,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test
 	public void errorChannelNotMappedToAmqpProperties() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put(MessageHeaders.ERROR_CHANNEL, "foo");
 		MessageHeaders integrationHeaders = new MessageHeaders(headerMap);
@@ -151,7 +151,7 @@ public class DefaultAmqpHeaderMapperTests {
 
 	@Test // INT-2090
 	public void jsonTypeIdNotOverwritten() {
-		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper();
+		DefaultAmqpHeaderMapper headerMapper = new DefaultAmqpHeaderMapper(true);
 		JsonMessageConverter converter = new JsonMessageConverter();
 		MessageProperties amqpProperties = new MessageProperties();
 		converter.toMessage("123", amqpProperties);

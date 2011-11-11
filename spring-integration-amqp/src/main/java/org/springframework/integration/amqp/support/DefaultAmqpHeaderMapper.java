@@ -69,9 +69,9 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 		STANDARD_HEADER_NAMES.add(AmqpHeaders.USER_ID);
 	}
 
-	public DefaultAmqpHeaderMapper() {
-		super(AmqpHeaders.PREFIX);
-		setOutboundHeaderNames(STANDARD_HEADER_NAMES.toArray(new String[0]));
+	public DefaultAmqpHeaderMapper(boolean outbound) {
+		super(AmqpHeaders.class, outbound);
+		//setOutboundHeaderNames(STANDARD_HEADER_NAMES.toArray(new String[0]));
 	}
 
 
@@ -79,7 +79,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * Extract "standard" headers from an AMQP MessageProperties instance.
 	 */
 	@Override
-	protected Map<String, Object> extractInboundStandardHeaders(MessageProperties amqpMessageProperties) {
+	protected Map<String, Object> extractStandardInboundHeaders(MessageProperties amqpMessageProperties) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		try {
 			String appId = amqpMessageProperties.getAppId();
@@ -171,7 +171,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * Extract user-defined headers from an AMQP MessageProperties instance.
 	 */
 	@Override
-	protected Map<String, Object> extractInboundUserDefinedHeaders(MessageProperties amqpMessageProperties) {
+	protected Map<String, Object> extractUserDefinedInboundHeaders(MessageProperties amqpMessageProperties) {
 		return amqpMessageProperties.getHeaders();
 	}
 
@@ -180,7 +180,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	 * of an AMQP Message.
 	 */
 	@Override
-	protected void populateOutboundStandardHeaders(MessageHeaders headers, MessageProperties amqpMessageProperties) {
+	protected void populateStandardOutboundHeaders(MessageHeaders headers, MessageProperties amqpMessageProperties) {
 		String appId = getHeaderIfAvailable(headers, AmqpHeaders.APP_ID, String.class);
 		if (StringUtils.hasText(appId)) {
 			amqpMessageProperties.setAppId(appId);
@@ -260,7 +260,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 	}
 
 	@Override
-	protected void populateOutboundUserDefinedHeader(String headerName, Object headerValue, MessageProperties amqpMessageProperties) {
+	protected void populateUserDefinedOutboundHeader(String headerName, Object headerValue, MessageProperties amqpMessageProperties) {
 		// do not overwrite an existing header with the same key
 		// TODO: do we need to expose a boolean 'overwrite' flag?
 		if (!amqpMessageProperties.getHeaders().containsKey(headerName)) {
@@ -270,7 +270,7 @@ public class DefaultAmqpHeaderMapper extends AbstractHeaderMapper<MessagePropert
 
 
 	@Override
-	protected List<String> getOutboundStandardHeaderNames() {
+	protected List<String> getStandardOutboundHeaderNames() {
 		return STANDARD_HEADER_NAMES;
 	}
 

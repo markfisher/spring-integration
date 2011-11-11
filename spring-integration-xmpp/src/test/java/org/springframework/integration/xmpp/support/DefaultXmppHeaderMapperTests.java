@@ -36,8 +36,8 @@ import org.springframework.integration.xmpp.XmppHeaders;
 public class DefaultXmppHeaderMapperTests {
 
 	@Test
-	public void fromHeaders() {
-		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
+	public void fromHeadersStandardOutbound() {
+		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper(true);
 		Map<String, Object> headerMap = new HashMap<String, Object>();
 		headerMap.put("userDefined1", "foo");
 		headerMap.put("userDefined2", "bar");
@@ -57,6 +57,38 @@ public class DefaultXmppHeaderMapperTests {
 		assertEquals("test.subject", target.getSubject());
 		assertEquals(Message.Type.headline, target.getType());
 
+		// user-defined headers not included by default
+		assertNull(target.getProperty("userDefined1"));
+		assertNull(target.getProperty("userDefined2"));
+
+		// transient headers should not be copied
+		assertNull(target.getProperty("id"));
+		assertNull(target.getProperty("timestamp"));
+	}
+
+	@Test
+	public void fromHeadersUserDefinedOnly() {
+		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper(true);
+		mapper.setOutboundHeaderNames(new String[] { "foo", "bart" });
+		Map<String, Object> headerMap = new HashMap<String, Object>();
+		headerMap.put("userDefined1", "foo");
+		headerMap.put("userDefined2", "bar");
+		headerMap.put(XmppHeaders.THREAD, "test.thread");
+		headerMap.put(XmppHeaders.TO, "test.to");
+		headerMap.put(XmppHeaders.FROM, "test.from");
+		headerMap.put(XmppHeaders.SUBJECT, "test.subject");
+		headerMap.put(XmppHeaders.TYPE, "headline");
+		MessageHeaders headers = new MessageHeaders(headerMap);
+		Message target = new Message();
+		mapper.fromHeaders(headers, target);
+
+		// "standard" XMPP headers not included
+		assertNull(target.getThread());
+		assertNull(target.getTo());
+		assertNull(target.getFrom());
+		assertNull(target.getSubject());
+		assertEquals(Message.Type.normal, target.getType());
+
 		// user-defined headers
 		assertEquals("foo", target.getProperty("userDefined1"));
 		assertEquals("bar", target.getProperty("userDefined2"));
@@ -68,7 +100,7 @@ public class DefaultXmppHeaderMapperTests {
 
 	@Test
 	public void toHeaders() {
-		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper();
+		DefaultXmppHeaderMapper mapper = new DefaultXmppHeaderMapper(true);
 		Message source = new Message("test.to", Message.Type.headline);
 		source.setFrom("test.from");
 		source.setSubject("test.subject");

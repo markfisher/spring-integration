@@ -38,12 +38,12 @@ import org.springframework.util.StringUtils;
  */
 public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> implements XmppHeaderMapper {
 
-	public DefaultXmppHeaderMapper() {
-		super(XmppHeaders.PREFIX);
+	public DefaultXmppHeaderMapper(boolean outbound) {
+		super(XmppHeaders.class, outbound);
 	}
 
 	@Override
-	protected Map<String, Object> extractInboundStandardHeaders(Message source) {
+	protected Map<String, Object> extractStandardInboundHeaders(Message source) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		Collection<PacketExtension> extensions = source.getExtensions();
 		if (!CollectionUtils.isEmpty(extensions)) {
@@ -80,7 +80,7 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	}
 
 	@Override
-	protected Map<String, Object> extractInboundUserDefinedHeaders(Message source) {
+	protected Map<String, Object> extractUserDefinedInboundHeaders(Message source) {
 		Map<String, Object> headers = new HashMap<String, Object>();
 		for (String propertyName : source.getPropertyNames()) {
 			headers.put(propertyName, source.getProperty(propertyName));
@@ -89,7 +89,7 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	}
 
 	@Override
-	protected void populateOutboundStandardHeaders(MessageHeaders headers, Message target) {
+	protected void populateStandardOutboundHeaders(MessageHeaders headers, Message target) {
 		String threadId = headers.get(XmppHeaders.THREAD, String.class);
 		if (StringUtils.hasText(threadId)) {
 			target.setThread(threadId);
@@ -124,14 +124,14 @@ public class DefaultXmppHeaderMapper extends AbstractHeaderMapper<Message> imple
 	}
 
 	@Override
-	protected void populateOutboundUserDefinedHeader(String headerName, Object headerValue, Message target) {
+	protected void populateUserDefinedOutboundHeader(String headerName, Object headerValue, Message target) {
 		target.setProperty(headerName, headerValue);
 	}
 
-	@Override
-	protected List<String> getOutboundStandardHeaderNames() {
+	/*@Override
+	protected List<String> getStandardOutboundHeaderNames() {
 		// TODO Auto-generated method stub
-		return null;
-	}
+		//return null;
+	}*/
 
 }
