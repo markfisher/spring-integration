@@ -67,4 +67,10 @@ public class MultipartHttpInputMessage extends ServletServerHttpRequest implemen
 		return this.multipartServletRequest.getParameterMap();
 	}
 
+
+	public String getMultipartContentType(String paramOrFileName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

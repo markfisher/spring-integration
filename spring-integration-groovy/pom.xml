@@ -86,8 +86,18 @@
       <id>SpringSource Release Repository</id>
       <url>http://maven.springframework.org/release/</url>
     </repository>
+    <repository>
+      <id>SpringSource Snapshot Repository</id>
+      <url>http://maven.springframework.org/snapshot/</url>
+    </repository>
   </repositories>
   <dependencies>
+    <dependency>
+      <groupId>org.springframework.integration</groupId>
+      <artifactId>spring-integration-core</artifactId>
+      <version>2.1.0.BUILD-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>org.easymock</groupId>
       <artifactId>easymock</artifactId>
@@ -103,7 +113,7 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context-support</artifactId>
-      <version>3.0.6.RELEASE</version>
+      <version>3.1.0.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -113,21 +123,15 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
-      <version>1.1</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-core</artifactId>
+      <artifactId>spring-integration-scripting</artifactId>
       <version>2.1.0.BUILD-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-test</artifactId>
-      <version>3.0.6.RELEASE</version>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>1.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -137,10 +141,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.integration</groupId>
-      <artifactId>spring-integration-scripting</artifactId>
-      <version>2.1.0.BUILD-SNAPSHOT</version>
-      <scope>compile</scope>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+      <version>3.1.0.BUILD-SNAPSHOT</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
