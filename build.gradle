@@ -62,7 +62,7 @@ allprojects {
 
     // default set of maven repositories to be used when resolving dependencies
     repositories {
-        //mavenRepo name: 'SpringSource Snapshot Repository', urls: 'http://maven.springframework.org/snapshot'
+        mavenRepo name: 'SpringSource Snapshot Repository', urls: 'http://maven.springframework.org/snapshot'
         mavenRepo name: 'SpringSource Milestone Repository',  urls: 'http://maven.springframework.org/milestone'
         mavenCentral()
         // only really necessary for artifacts not yet in Maven Central, i.e. immediately post-release
@@ -122,7 +122,7 @@ configure(javaprojects) {
     junitVersion = '4.8.2'
     log4jVersion = '1.2.12'
     mockitoVersion = '1.8.4'
-    springVersion = '3.0.6.RELEASE'
+    springVersion = '3.1.0.BUILD-SNAPSHOT'
     springAmqpVersion = '1.0.0.RELEASE'
     springDataMongoVersion = '1.0.0.RC1'
     springDataRedisVersion = '1.0.0.RC1'
