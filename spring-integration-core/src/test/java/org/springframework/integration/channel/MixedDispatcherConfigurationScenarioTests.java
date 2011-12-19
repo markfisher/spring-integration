@@ -21,6 +21,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -436,13 +437,10 @@ public class MixedDispatcherConfigurationScenarioTests {
 		dispatcher.addHandler(handlerB);	
 		dispatcher.addHandler(handlerC);
 		
-		final CountDownLatch taskSubmissionMonitor = new CountDownLatch(TOTAL_EXECUTIONS);
-		
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {			
 				RuntimeException e = new RuntimeException();		
 				failed.set(true);
-				allDone.countDown();
 				throw e;
 			}
 		}).when(handlerA).handleMessage(message);
@@ -462,12 +460,11 @@ public class MixedDispatcherConfigurationScenarioTests {
 		Runnable messageSenderTask = new Runnable() {
 			public void run() {
 				try {
-					start.await();		
+					start.await();
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
 				channel.send(message);
-				taskSubmissionMonitor.countDown();
 			}
 		};
 		for (int i = 0; i < TOTAL_EXECUTIONS; i++) {
@@ -476,8 +473,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}
 		start.countDown();	
 		allDone.await();
-		
-		taskSubmissionMonitor.await();
 		
 		executor.shutdown();
 		executor.awaitTermination(5, TimeUnit.SECONDS);
