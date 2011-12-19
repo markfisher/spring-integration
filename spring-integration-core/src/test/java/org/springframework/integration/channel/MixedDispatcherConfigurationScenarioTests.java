@@ -449,7 +449,6 @@ public class MixedDispatcherConfigurationScenarioTests {
 		}).when(handlerB).handleMessage(message);
 		doAnswer(new Answer<Object>() {
 			public Object answer(InvocationOnMock invocation) {		
-				allDone.countDown();
 				return null;
 			}
 		}).when(handlerC).handleMessage(message);
