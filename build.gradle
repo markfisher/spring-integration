@@ -38,7 +38,7 @@ apply plugin: 'idea'
 
 buildscript {
     repositories {
-        mavenRepo url: 'https://repo.springsource.org/plugins-snapshot'
+        maven { url 'https://repo.springsource.org/plugins-snapshot' }
     }
     dependencies {
         classpath 'org.springframework.build.docbook:docbook-reference-plugin:1.0.0-SNAPSHOT'
@@ -70,8 +70,8 @@ allprojects {
     version = new Version(springIntegrationVersion)
 
     repositories {
-        mavenRepo url: 'http://repo.springsource.org/libs-milestone'
-        mavenRepo url: 'http://repo.springsource.org/plugins-release' // for bundlor TODO fix
+        maven { url 'http://repo.springsource.org/libs-milestone' }
+        maven { url 'http://repo.springsource.org/plugins-release' } // for bundlor TODO fix
     }
 }
 
@@ -957,6 +957,6 @@ apply from: "$buildSrcDir/dist.gradle"
 apply from: "$buildSrcDir/checks.gradle"
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.0-milestone-5'
+    gradleVersion = '1.0-milestone-6'
     jarFile = '.wrapper/gradle-wrapper.jar'
 }
