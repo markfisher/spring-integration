@@ -91,7 +91,7 @@ javaprojects = subprojects.findAll { project ->
 // -----------------------------------------------------------------------------
 // Configuration for all java subprojects
 // -----------------------------------------------------------------------------
-configure(javaprojects) {
+configure(javaprojects) { javaProject ->
 
     apply plugin: 'java'     // tasks for conventional java lifecycle
     apply plugin: 'maven'    // `gradle install` to push jars to local .m2 cache
@@ -190,6 +190,12 @@ configure(javaprojects) {
     artifacts {
         archives sourcesJar
         archives javadocJar
+    }
+
+    install {
+        repositories.mavenInstaller {
+            customizePom(pom, javaProject)
+        }
     }
 }
 
@@ -974,4 +980,81 @@ apply from: "$buildSrcDir/checks.gradle"
 task wrapper(type: Wrapper) {
     gradleVersion = '1.0-milestone-6'
     jarFile = '.wrapper/gradle-wrapper.jar'
+}
+
+def customizePom(def pom, def gradleProject) {
+    pom.whenConfigured { generatedPom ->
+        // respect 'optional' and 'provided' dependencies
+        def deps = gradleProject.configurations.runtime.allDependencies
+        def optionalDeps = deps.findAll { dep ->
+            dep.asDynamicObject.hasProperty('optional') && dep.optional
+        }
+        def providedDeps = deps.findAll { dep ->
+            dep.asDynamicObject.hasProperty('provided') && dep.provided
+        }
+        generatedPom.dependencies.each { mavenDep ->
+            mavenDep.optional = optionalDeps.any { optionalDep ->
+                optionalDep.group == mavenDep.groupId &&
+                        optionalDep.name == mavenDep.artifactId &&
+                        optionalDep.version == mavenDep.version
+            }
+            boolean isProvided = providedDeps.any { providedDep ->
+                providedDep.group == mavenDep.groupId &&
+                        providedDep.name == mavenDep.artifactId &&
+                        providedDep.version == mavenDep.version
+            }
+            if (isProvided) {
+                mavenDep.scope = 'provided'
+            }
+        }
+
+        // eliminate test-scoped dependencies (no need in maven central poms)
+        generatedPom.dependencies.removeAll { dep ->
+            dep.scope == 'test'
+        }
+
+        // add all items necessary for maven central publication
+        generatedPom.project {
+            name = gradleProject.description
+            description = gradleProject.description
+            url = 'https://github.com/SpringSource/spring-integration'
+            organization {
+                name = 'SpringSource'
+                url = 'http://springsource.org'
+            }
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+            scm {
+                url = 'https://github.com/SpringSource/spring-integration'
+                connection = 'scm:git:git://github.com/SpringSource/spring-integration'
+                developerConnection = 'scm:git:git://github.com/SpringSource/spring-integration'
+            }
+            developers {
+                developer {
+                    id = 'markfisher'
+                    name = 'Mark Fisher'
+                    email = 'markfisher@vmware.com'
+                }
+                developer {
+                    id = 'olegz'
+                    name = 'Oleg Zhurakousky'
+                    email = 'ozhurakousky@vmware.com'
+                }
+                // and so forth...
+            }
+            // -- optional --
+            // contributors {
+            //     contributor {
+            //         id = 'jdoe'
+            //         name = 'John Doe'
+            //         email = 'john@doe.org'
+            //     }
+            // }
+        }
+    }
 }
