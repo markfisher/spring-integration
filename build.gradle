@@ -67,7 +67,7 @@ allprojects {
     // milestone or release.
     // @see org.springframework.build.Version under buildSrc/ for more info
     // @see gradle.properties for the declaration of this property.
-    version = new Version(springIntegrationVersion)
+    version = new Version(project.properties.version)
 
     repositories {
         maven { url 'http://repo.springsource.org/libs-milestone' }
