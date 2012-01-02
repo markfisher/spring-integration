@@ -46,7 +46,7 @@ buildscript {
     }
 }
 
-def buildSrcDir = "$rootDir/buildSrc"
+//def buildSrcDir = "$rootDir/buildSrc"
 // apply from: "$buildSrcDir/maven-root-pom.gradle" // TODO deal with root pom
 
 // Tie pom generation into the standard build lifecycle (INT-1609)
@@ -105,14 +105,14 @@ configure(javaprojects) { javaProject ->
 
     // set up dedicated directories for jars and source jars.
     // this makes it easier when putting together the distribution
-    libsBinDir = new File(libsDir, 'bin')
-    libsSrcDir = new File(libsDir, 'src')
+    //libsBinDir = new File(libsDir, 'bin')
+    //libsSrcDir = new File(libsDir, 'src')
 
     // add tasks for creating source jars and generating poms etc
     // apply from: "$buildSrcDir/maven-deployment.gradle" // TODO deal with maven-deployment
 
     // add tasks for finding and publishing .xsd files
-    apply from: "$buildSrcDir/schema-publication.gradle"
+    //apply from: "$buildSrcDir/schema-publication.gradle"
 
     aspectjVersion = '1.6.8'
     cglibVersion = '2.2'
@@ -974,8 +974,97 @@ project('docs') {
     }
 }
 
-apply from: "$buildSrcDir/dist.gradle"
-apply from: "$buildSrcDir/checks.gradle"
+task aggregatedJavadoc(type: Javadoc) {
+    source javaprojects.collect { project ->
+        project.sourceSets.main.allJava
+    }
+    destinationDir = new File(buildDir, "api")
+    classpath = files(javaprojects.collect { project ->
+        project.sourceSets.main.compileClasspath
+    })
+}
+
+task docsZip(type: Zip) {
+    classifier = 'docs'
+
+    from('docs/src/info') {
+        include 'changelog.txt'
+    }
+
+    dependsOn aggregatedJavadoc
+    from (aggregatedJavadoc.destinationDir) {
+        into 'api'
+    }
+
+    dependsOn project('docs').reference
+    from (project('docs').buildDir) {
+        include 'reference/**/*'
+    }
+}
+
+task distZip(type: Zip) {
+    classifier = 'dist'
+
+    def baseDir = "${project.name}-${project.version}";
+
+    from('docs/src/info') {
+        include 'readme.txt'
+        include 'license.txt'
+        include 'notice.txt'
+        into "${baseDir}"
+    }
+
+    dependsOn docsZip
+    from(zipTree(docsZip.archivePath)) {
+        into "${baseDir}/docs"
+    }
+
+    javaprojects.each { subproject ->
+        dependsOn subproject.jar
+        dependsOn subproject.sourcesJar
+        dependsOn subproject.javadocJar
+        into ("${baseDir}/libs") {
+            from subproject.jar.archivePath
+            from subproject.sourcesJar.archivePath
+            from subproject.javadocJar.archivePath
+        }
+   }
+}
+
+task schemaZip(type: Zip) {
+    classifier = 'schema'
+
+    javaprojects.each { javaproject ->
+        def Properties schemas = new Properties();
+        def shortName = javaproject.name.replaceFirst("${rootProject.name}-", '')
+
+        javaproject.sourceSets.main.resources.find {
+            it.path.endsWith('META-INF/spring.schemas')
+        }?.withInputStream { schemas.load(it) }
+
+        for (def key : schemas.keySet()) {
+            File xsdFile = javaproject.sourceSets.main.resources.find {
+                it.path.endsWith(schemas.get(key))
+            }
+            assert xsdFile != null
+            into ("schema/integration/${shortName}") {
+                from xsdFile.path
+            }
+        }
+    }
+}
+
+artifacts {
+    archives distZip
+    archives docsZip
+    archives schemaZip
+}
+
+task build
+task dist(dependsOn: [assemble, build])
+
+//apply from: "$buildSrcDir/dist.gradle"
+//apply from: "$buildSrcDir/checks.gradle"
 
 task wrapper(type: Wrapper) {
     gradleVersion = '1.0-milestone-6'
