@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-import org.springframework.build.Version
-
 // -----------------------------------------------------------------------------
 // Main gradle build file for Spring Integration
 //
@@ -46,12 +44,6 @@ buildscript {
     }
 }
 
-//def buildSrcDir = "$rootDir/buildSrc"
-// apply from: "$buildSrcDir/maven-root-pom.gradle" // TODO deal with root pom
-
-// Tie pom generation into the standard build lifecycle (INT-1609)
-// assemble.dependsOn generatePom // TODO deal with root pom generation
-
 
 // -----------------------------------------------------------------------------
 // Configuration for all projects including this one (the root project)
@@ -61,13 +53,6 @@ buildscript {
 allprojects {
     // group will translate to groupId during pom generation and deployment
     group = 'org.springframework.integration'
-
-    // version will be used in maven pom generation as well as determining
-    // where artifacts should be deployed, based on release type of snapshot,
-    // milestone or release.
-    // @see org.springframework.build.Version under buildSrc/ for more info
-    // @see gradle.properties for the declaration of this property.
-    version = new Version(project.properties.version)
 
     repositories {
         maven { url 'http://repo.springsource.org/libs-milestone' }
@@ -102,17 +87,6 @@ configure(javaprojects) { javaProject ->
     // ensure JDK 5 compatibility (GRADLE-18; INT-1578)
     sourceCompatibility=1.5
     targetCompatibility=1.5
-
-    // set up dedicated directories for jars and source jars.
-    // this makes it easier when putting together the distribution
-    //libsBinDir = new File(libsDir, 'bin')
-    //libsSrcDir = new File(libsDir, 'src')
-
-    // add tasks for creating source jars and generating poms etc
-    // apply from: "$buildSrcDir/maven-deployment.gradle" // TODO deal with maven-deployment
-
-    // add tasks for finding and publishing .xsd files
-    //apply from: "$buildSrcDir/schema-publication.gradle"
 
     aspectjVersion = '1.6.8'
     cglibVersion = '2.2'
@@ -1062,9 +1036,6 @@ artifacts {
 
 task build
 task dist(dependsOn: [assemble, build])
-
-//apply from: "$buildSrcDir/dist.gradle"
-//apply from: "$buildSrcDir/checks.gradle"
 
 task wrapper(type: Wrapper) {
     gradleVersion = '1.0-milestone-6'
