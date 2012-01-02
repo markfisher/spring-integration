@@ -13,6 +13,22 @@ If you encounter out of memory errors during the build, increase available heap 
 
     GRADLE_OPTS='-XX:MaxPermSize=1024m -Xmx1024m'
 
+To build and install jars into your local Maven cache:
+
+    ./gradlew install
+
+To build api Javadoc (results will be in `build/api`):
+
+    ./gradlew aggregatedJavadoc
+
+To build reference documentation (results will be in `docs/build/reference`):
+
+    ./gradlew reference
+
+To build complete distribution including `-dist`, `-docs`, and `-schema` zip files (results will be in `build/distributions`)
+
+    ./gradlew dist
+
 # Using Eclipse
 
 To generate Eclipse metadata (.classpath and .project files), do the following:
@@ -31,14 +47,6 @@ free of errors.
 To generate IDEA metadata (.iml and .ipr files), do the following:
 
     ./gradlew idea
-
-# Generating JavaDoc
-
-To build the JavaDoc, do the following from within the root directory:
-
-    ./gradlew aggregatedJavadoc
-
-The result will be available in **'build/api'**.
 
 # OSGI Notes
 

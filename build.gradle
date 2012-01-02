@@ -888,6 +888,8 @@ project('docs') {
 }
 
 task aggregatedJavadoc(type: Javadoc) {
+    group = 'Documentation'
+    description = 'Generates aggregated Javadoc API documentation.'
     source javaprojects.collect { project ->
         project.sourceSets.main.allJava
     }
@@ -898,6 +900,9 @@ task aggregatedJavadoc(type: Javadoc) {
 }
 
 task docsZip(type: Zip) {
+    group = 'Distribution'
+    description = 'Builds -docs archive containing api and reference for ' +
+                  'deployment at static.springframework.org/spring-integration/docs.'
     classifier = 'docs'
 
     from('docs/src/info') {
@@ -916,6 +921,9 @@ task docsZip(type: Zip) {
 }
 
 task distZip(type: Zip) {
+    group = 'Distribution'
+    description = 'Builds -dist archive, containing all jars and docs, ' +
+                  'suitable for community download page.'
     classifier = 'dist'
 
     def baseDir = "${project.name}-${project.version}";
@@ -945,6 +953,9 @@ task distZip(type: Zip) {
 }
 
 task schemaZip(type: Zip) {
+    group = 'Distribution'
+    description = 'Builds -schema archive containing all XSDs for deployment ' +
+                  'at static.springframework.org/schema.'
     classifier = 'schema'
 
     javaprojects.each { javaproject ->
@@ -973,9 +984,13 @@ artifacts {
     archives schemaZip
 }
 
-task dist(dependsOn: assemble)
+task dist(dependsOn: assemble) {
+    group = 'Distribution'
+    description = 'Builds -dist, -docs and -schema distribution archives.'
+}
 
 task wrapper(type: Wrapper) {
+    description = 'Generates gradlew[.bat] scripts'
     gradleVersion = '1.0-milestone-6'
     jarFile = '.wrapper/gradle-wrapper.jar'
 }
