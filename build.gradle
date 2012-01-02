@@ -1,33 +1,3 @@
-/*
- * Copyright 2002-2011 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// -----------------------------------------------------------------------------
-// Main gradle build file for Spring Integration
-//
-// - run `./gradlew(.bat) build` to kick off a complete compile-test-package
-//
-// @author Chris Beams
-// @author Mark Fisher
-// @author Oleg Zhurakousky
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// Configuration for the root project
-// -----------------------------------------------------------------------------
-// used for artifact names, building doc upload urls, etc.
 description = 'Spring Integration'
 abbreviation = 'INT'
 
@@ -44,14 +14,7 @@ buildscript {
     }
 }
 
-
-// -----------------------------------------------------------------------------
-// Configuration for all projects including this one (the root project)
-//
-// @see settings.gradle for list of all subprojects
-// -----------------------------------------------------------------------------
 allprojects {
-    // group will translate to groupId during pom generation and deployment
     group = 'org.springframework.integration'
 
     repositories {
@@ -60,29 +23,16 @@ allprojects {
     }
 }
 
-
-// -----------------------------------------------------------------------------
-// Create collections of subprojects - each will receive their own configuration
-// - all subprojects that start with spring-integration-* are 'java projects'
-// - documentation-related subprojects are not collected here
-//
-// @see configure(*) sections below
-// -----------------------------------------------------------------------------
 javaprojects = subprojects.findAll { project ->
     project.path.startsWith(':spring-integration-')
 }
 
-
-// -----------------------------------------------------------------------------
-// Configuration for all java subprojects
-// -----------------------------------------------------------------------------
-configure(javaprojects) { javaProject ->
-
-    apply plugin: 'java'     // tasks for conventional java lifecycle
-    apply plugin: 'maven'    // `gradle install` to push jars to local .m2 cache
-    apply plugin: 'eclipse'  // `gradle eclipse` to generate .classpath/.project
-    apply plugin: 'idea'     // `gradle idea` to generate .ipr/.iml
-    apply plugin: 'bundlor'  // all core projects should be OSGi-compliant
+configure(javaprojects) { javaproject ->
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+    apply plugin: 'bundlor'
 
     // ensure JDK 5 compatibility (GRADLE-18; INT-1578)
     sourceCompatibility=1.5
@@ -168,17 +118,11 @@ configure(javaprojects) { javaProject ->
 
     install {
         repositories.mavenInstaller {
-            customizePom(pom, javaProject)
+            customizePom(pom, javaproject)
         }
     }
 }
 
-
-// -----------------------------------------------------------------------------
-// Configuration for each individual core java subproject
-//
-// @see configure(javaprojects) above for general config
-// -----------------------------------------------------------------------------
 project('spring-integration-amqp') {
     description = 'Spring Integration AMQP Support'
     dependencies {
@@ -215,7 +159,6 @@ project('spring-integration-amqp') {
         ]
     }
 }
-
 
 project('spring-integration-core') {
     description = 'Spring Integration Core'
@@ -342,13 +285,12 @@ project('spring-integration-ftp') {
     }
 }
 
-
 project('spring-integration-gemfire') {
     description = 'Spring Integration GemFire Support'
-    test{
-		forkEvery = 1
-		systemProperties['gemfire.disableShutdownHook'] = 'true'
-	}
+    test {
+        forkEvery = 1
+        systemProperties['gemfire.disableShutdownHook'] = 'true'
+    }
     dependencies {
         compile project(":spring-integration-core")
         compile ("org.springframework.data:spring-data-gemfire:$springGemfireVersion") {
@@ -501,8 +443,8 @@ project('spring-integration-jms') {
         testCompile project(":spring-integration-test")
         testCompile ("org.apache.activemq:activemq-core:5.3.0") {
             exclude group: 'org.springframework', module: 'spring-context'
-        }        
-        
+        }
+
         testCompile "org.springframework:spring-oxm:$springVersion"
     }
     bundlor {
@@ -617,8 +559,8 @@ project('spring-integration-redis') {
     dependencies {
         compile project(":spring-integration-core")
         compile "org.springframework:spring-tx:$springVersion"
-        compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion") 
-        compile("org.codehaus.jackson:jackson-core-asl:$jacksonVersion") 
+        compile("org.codehaus.jackson:jackson-mapper-asl:$jacksonVersion")
+        compile("org.codehaus.jackson:jackson-core-asl:$jacksonVersion")
         compile ("org.springframework.data:spring-data-redis:$springDataRedisVersion") {
             exclude group: 'org.springframework', module: 'spring-core'
             exclude group: 'org.springframework', module: 'spring-context-support'
@@ -837,8 +779,8 @@ project('spring-integration-ws') {
         compile "org.springframework:spring-web:$springVersion"
         compile ("org.springframework.ws:spring-ws-core:$springWsVersion") {
             exclude group: 'org.springframework', module: 'spring-webmvc'
-        	exclude group: 'org.springframework', module: 'spring-web'
-        	exclude group: 'org.springframework', module: 'spring-context-support'
+            exclude group: 'org.springframework', module: 'spring-web'
+            exclude group: 'org.springframework', module: 'spring-context-support'
         }
         compile("javax.xml.soap:saaj-api:1.3") {
             optional = true
@@ -881,8 +823,8 @@ project('spring-integration-xml') {
         compile "org.springframework:spring-context:$springVersion"
         compile "org.springframework:spring-oxm:$springVersion"
         compile ("org.springframework.ws:spring-xml:$springWsVersion") {
-        	exclude group: 'org.springframework', module: 'spring-beans'
-        	exclude group: 'org.springframework', module: 'spring-core'
+            exclude group: 'org.springframework', module: 'spring-beans'
+            exclude group: 'org.springframework', module: 'spring-core'
         }
         compile("javax.activation:activation:$javaxActivationVersion") { optional = true }
         testCompile project(":spring-integration-test")
@@ -937,9 +879,6 @@ project('spring-integration-xmpp') {
     [compileJava,compileTestJava]*.options*.compilerArgs = ["${xLintArg},-path"]
 }
 
-// -----------------------------------------------------------------------------
-// Configuration for the docs subproject
-// -----------------------------------------------------------------------------
 project('docs') {
     apply plugin: 'docbook-reference'
 
@@ -1034,8 +973,7 @@ artifacts {
     archives schemaZip
 }
 
-task build
-task dist(dependsOn: [assemble, build])
+task dist(dependsOn: assemble)
 
 task wrapper(type: Wrapper) {
     gradleVersion = '1.0-milestone-6'
@@ -1105,16 +1043,7 @@ def customizePom(def pom, def gradleProject) {
                     name = 'Oleg Zhurakousky'
                     email = 'ozhurakousky@vmware.com'
                 }
-                // and so forth...
             }
-            // -- optional --
-            // contributors {
-            //     contributor {
-            //         id = 'jdoe'
-            //         name = 'John Doe'
-            //         email = 'john@doe.org'
-            //     }
-            // }
         }
     }
 }
