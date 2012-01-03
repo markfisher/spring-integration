@@ -8,8 +8,8 @@ buildscript {
         maven { url 'https://repo.springsource.org/plugins-snapshot' }
     }
     dependencies {
-        classpath 'org.springframework.build.docbook:docbook-reference-plugin:1.0.0-SNAPSHOT'
-        classpath 'org.springframework.build.bundlor:gradle-bundlor-plugin:1.0.0-SNAPSHOT'
+        classpath 'org.springframework.build.gradle:bundlor-plugin:0.1.0-SNAPSHOT'
+        classpath 'org.springframework.build.gradle:docbook-reference-plugin:0.1.0-SNAPSHOT'
     }
 }
 
