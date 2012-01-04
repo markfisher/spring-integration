@@ -886,6 +886,8 @@ project('docs') {
 task api(type: Javadoc) {
     group = 'Documentation'
     description = 'Generates aggregated Javadoc API documentation.'
+    options.overview = 'docs/src/api/overview.html'
+    options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
     source javaprojects.collect { project ->
         project.sourceSets.main.allJava
     }
