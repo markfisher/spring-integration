@@ -97,14 +97,14 @@ configure(javaprojects) { javaproject ->
         ]
     }
 
-    task sourcesJar(type: Jar, dependsOn: classes) {
+    task sourcesJar(type: Jar) {
         classifier = 'sources'
-        from sourceSets.main.allSource
+        from sourceSets.main.allJava
     }
 
-    task javadocJar(type: Jar, dependsOn: javadoc) {
+    task javadocJar(type: Jar) {
         classifier = 'javadoc'
-        from javadoc.destinationDir
+        from javadoc
     }
 
     artifacts {
