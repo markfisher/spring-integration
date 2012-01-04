@@ -883,7 +883,7 @@ project('docs') {
     }
 }
 
-task aggregatedJavadoc(type: Javadoc) {
+task api(type: Javadoc) {
     group = 'Documentation'
     description = 'Generates aggregated Javadoc API documentation.'
     source javaprojects.collect { project ->
@@ -897,9 +897,9 @@ task aggregatedJavadoc(type: Javadoc) {
 
 task schemaZip(type: Zip) {
     group = 'Distribution'
-    description = 'Builds -schema archive containing all XSDs for deployment ' +
-                  'at static.springframework.org/schema.'
     classifier = 'schema'
+    description = "Builds -${classifier} archive containing all " +
+        "XSDs for deployment at static.springframework.org/schema."
 
     javaprojects.each { javaproject ->
         def Properties schemas = new Properties();
@@ -921,33 +921,32 @@ task schemaZip(type: Zip) {
     }
 }
 
-
-task docsZip(type: Zip, dependsOn: [aggregatedJavadoc, project('docs').reference]) {
+task docsZip(type: Zip) {
     group = 'Distribution'
-    description = 'Builds -docs archive containing api and reference for ' +
-                  'deployment at static.springframework.org/spring-integration/docs.'
     classifier = 'docs'
+    description = "Builds -${classifier} archive containing api and reference " +
+        "for deployment at static.springframework.org/spring-integration/docs."
 
     from('docs/src/info') {
         include 'changelog.txt'
     }
 
-    from (aggregatedJavadoc.destinationDir) {
+    from (api) {
         into 'api'
     }
 
-    from (project('docs').buildDir) {
-        include 'reference/**/*'
+    from (project('docs').reference) {
+        into 'reference'
     }
 }
 
 task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
     group = 'Distribution'
-    description = 'Builds -dist archive, containing all jars and docs, ' +
-                  'suitable for community download page.'
     classifier = 'dist'
+    description = "Builds -${classifier} archive, containing all jars and docs, " +
+                  "suitable for community download page."
 
-    def baseDir = "${project.name}-${project.version}";
+    baseDir = "${project.name}-${project.version}";
 
     from('docs/src/info') {
         include 'readme.txt'
@@ -956,11 +955,11 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
         into "${baseDir}"
     }
 
-    from(zipTree(docsZip)) {
+    from(zipTree(docsZip.archivePath)) {
         into "${baseDir}/docs"
     }
 
-    from(zipTree(schemaZip)) {
+    from(zipTree(schemaZip.archivePath)) {
         into "${baseDir}/schema"
     }
 
@@ -971,6 +970,36 @@ task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
             from subproject.javadocJar
         }
    }
+}
+
+// Create an optional "with dependencies" distribution.
+// Not published by default; only for use when building from source.
+task depsZip(type: Zip, dependsOn: distZip) { zipTask ->
+    group = 'Distribution'
+    classifier = 'dist-with-deps'
+    description = "Builds -${classifier} archive, containing everything " +
+        "in the -${distZip.classifier} archive plus all dependencies."
+
+    from zipTree(distZip.archivePath)
+
+    gradle.taskGraph.whenReady { taskGraph ->
+        if (taskGraph.hasTask(":${zipTask.name}")) {
+            def projectNames = rootProject.subprojects*.name
+            def artifacts = new HashSet()
+            javaprojects.each { subproject ->
+                subproject.configurations.runtime.resolvedConfiguration.resolvedArtifacts.each { artifact ->
+                    def dependency = artifact.moduleVersion.id
+                    if (!projectNames.contains(dependency.name)) {
+                        artifacts << artifact.file
+                    }
+                }
+            }
+
+            zipTask.from(artifacts) {
+                into "${distZip.baseDir}/deps"
+            }
+        }
+    }
 }
 
 artifacts {
