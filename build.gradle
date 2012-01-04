@@ -97,12 +97,12 @@ configure(javaprojects) { javaproject ->
         ]
     }
 
-    task sourcesJar(type: Jar, dependsOn:classes) {
+    task sourcesJar(type: Jar, dependsOn: classes) {
         classifier = 'sources'
         from sourceSets.main.allSource
     }
 
-    task javadocJar(type: Jar, dependsOn:javadoc) {
+    task javadocJar(type: Jar, dependsOn: javadoc) {
         classifier = 'javadoc'
         from javadoc.destinationDir
     }
@@ -895,59 +895,6 @@ task aggregatedJavadoc(type: Javadoc) {
     })
 }
 
-task docsZip(type: Zip) {
-    group = 'Distribution'
-    description = 'Builds -docs archive containing api and reference for ' +
-                  'deployment at static.springframework.org/spring-integration/docs.'
-    classifier = 'docs'
-
-    from('docs/src/info') {
-        include 'changelog.txt'
-    }
-
-    dependsOn aggregatedJavadoc
-    from (aggregatedJavadoc.destinationDir) {
-        into 'api'
-    }
-
-    dependsOn project('docs').reference
-    from (project('docs').buildDir) {
-        include 'reference/**/*'
-    }
-}
-
-task distZip(type: Zip) {
-    group = 'Distribution'
-    description = 'Builds -dist archive, containing all jars and docs, ' +
-                  'suitable for community download page.'
-    classifier = 'dist'
-
-    def baseDir = "${project.name}-${project.version}";
-
-    from('docs/src/info') {
-        include 'readme.txt'
-        include 'license.txt'
-        include 'notice.txt'
-        into "${baseDir}"
-    }
-
-    dependsOn docsZip
-    from(zipTree(docsZip.archivePath)) {
-        into "${baseDir}/docs"
-    }
-
-    javaprojects.each { subproject ->
-        dependsOn subproject.jar
-        dependsOn subproject.sourcesJar
-        dependsOn subproject.javadocJar
-        into ("${baseDir}/libs") {
-            from subproject.jar.archivePath
-            from subproject.sourcesJar.archivePath
-            from subproject.javadocJar.archivePath
-        }
-   }
-}
-
 task schemaZip(type: Zip) {
     group = 'Distribution'
     description = 'Builds -schema archive containing all XSDs for deployment ' +
@@ -967,11 +914,63 @@ task schemaZip(type: Zip) {
                 it.path.endsWith(schemas.get(key))
             }
             assert xsdFile != null
-            into ("schema/integration/${shortName}") {
+            into ("integration/${shortName}") {
                 from xsdFile.path
             }
         }
     }
+}
+
+
+task docsZip(type: Zip, dependsOn: [aggregatedJavadoc, project('docs').reference]) {
+    group = 'Distribution'
+    description = 'Builds -docs archive containing api and reference for ' +
+                  'deployment at static.springframework.org/spring-integration/docs.'
+    classifier = 'docs'
+
+    from('docs/src/info') {
+        include 'changelog.txt'
+    }
+
+    from (aggregatedJavadoc.destinationDir) {
+        into 'api'
+    }
+
+    from (project('docs').buildDir) {
+        include 'reference/**/*'
+    }
+}
+
+task distZip(type: Zip, dependsOn: [docsZip, schemaZip]) {
+    group = 'Distribution'
+    description = 'Builds -dist archive, containing all jars and docs, ' +
+                  'suitable for community download page.'
+    classifier = 'dist'
+
+    def baseDir = "${project.name}-${project.version}";
+
+    from('docs/src/info') {
+        include 'readme.txt'
+        include 'license.txt'
+        include 'notice.txt'
+        into "${baseDir}"
+    }
+
+    from(zipTree(docsZip)) {
+        into "${baseDir}/docs"
+    }
+
+    from(zipTree(schemaZip)) {
+        into "${baseDir}/schema"
+    }
+
+    javaprojects.each { subproject ->
+        into ("${baseDir}/libs") {
+            from subproject.jar
+            from subproject.sourcesJar
+            from subproject.javadocJar
+        }
+   }
 }
 
 artifacts {
