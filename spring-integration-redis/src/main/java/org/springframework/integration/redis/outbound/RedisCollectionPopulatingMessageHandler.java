@@ -29,6 +29,7 @@ import org.springframework.data.redis.core.BoundSetOperations;
 import org.springframework.data.redis.core.BoundZSetOperations;
 import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean;
 import org.springframework.data.redis.support.collections.RedisCollectionFactoryBean.CollectionType;
@@ -159,7 +160,7 @@ public class RedisCollectionPopulatingMessageHandler extends AbstractMessageHand
 	public RedisCollectionPopulatingMessageHandler(RedisConnectionFactory connectionFactory, Expression keyExpression) {
 		Assert.notNull(connectionFactory, "'connectionFactory' must not be null");
 
-		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<String, Object>();
+		StringRedisTemplate redisTemplate = new StringRedisTemplate();
 		redisTemplate.setConnectionFactory(connectionFactory);
 
 		this.redisTemplate = redisTemplate;
