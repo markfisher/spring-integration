@@ -10,6 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.springframework.integration.channel.registry;
 
 import static org.junit.Assert.assertEquals;
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Before;
 import org.junit.Test;
+
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.Message;
@@ -31,11 +33,13 @@ import org.springframework.integration.message.GenericMessage;
 
 /**
  * @author David Turanski
+ * @author Mark Fisher
  * @since 3.0
- *
  */
 public class LocalChannelRegistryTests {
+
 	private LocalChannelRegistry registry = new LocalChannelRegistry();
+
 	private ApplicationContext context = new GenericApplicationContext();
 
 	@Before
@@ -49,23 +53,17 @@ public class LocalChannelRegistryTests {
 		registry.inbound("inbound", channel);
 		assertTrue(context.containsBean("inbound"));
 
-		SubscribableChannel registeredChannel = context.getBean("inbound", SubscribableChannel.class);
-
 		final AtomicBoolean messageReceived = new AtomicBoolean();
-
 		channel.subscribe(new MessageHandler() {
-
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				messageReceived.set(true);
 				assertEquals("hello", message.getPayload());
 			}
 		});
-
+		SubscribableChannel registeredChannel = context.getBean("inbound", SubscribableChannel.class);
 		registeredChannel.send(new GenericMessage<String>("hello"));
-
 		assertTrue(messageReceived.get());
-
 	}
 
 	@Test
@@ -74,74 +72,61 @@ public class LocalChannelRegistryTests {
 		registry.outbound("outbound", channel);
 		assertTrue(context.containsBean("outbound"));
 
-		SubscribableChannel registeredChannel = context.getBean("outbound", SubscribableChannel.class);
-
 		final AtomicBoolean messageReceived = new AtomicBoolean();
-
+		SubscribableChannel registeredChannel = context.getBean("outbound", SubscribableChannel.class);
 		registeredChannel.subscribe(new MessageHandler() {
-
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
 				messageReceived.set(true);
 				assertEquals("hello", message.getPayload());
 			}
 		});
-
 		channel.send(new GenericMessage<String>("hello"));
-
 		assertTrue(messageReceived.get());
-
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testOutboundTapShouldFail() {
-		DirectChannel registeredChannel = new DirectChannel();
-		registry.outbound("outbound", registeredChannel);
+		DirectChannel channel = new DirectChannel();
+		registry.outbound("outbound", channel);
 		DirectChannel tapChannel = new DirectChannel();
 		registry.tap("outbound", tapChannel);
 	}
 
 	@Test
 	public void testInboundTap() {
-
-		DirectChannel registeredChannel = new DirectChannel();
-		registry.inbound("inbound", registeredChannel);
+		DirectChannel channel = new DirectChannel();
+		registry.inbound("inbound", channel);
 		DirectChannel tapChannel = new DirectChannel();
 		registry.tap("inbound", tapChannel);
-
-		MessageChannel inbound = context.getBean("inbound", MessageChannel.class);
-
-		final AtomicBoolean messageReceived = new AtomicBoolean();
-
+		final AtomicBoolean originalMessageReceived = new AtomicBoolean();
+		final AtomicBoolean tapMessageReceived = new AtomicBoolean();
 		tapChannel.subscribe(new MessageHandler() {
-
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
-				messageReceived.set(true);
+				tapMessageReceived.set(true);
 				assertEquals("hello", message.getPayload());
 			}
 		});
-
-		//avoid DHNS error
-		registeredChannel.subscribe(new MessageHandler() {
+		channel.subscribe(new MessageHandler() {
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
+				originalMessageReceived.set(true);
+				assertEquals("hello", message.getPayload());
 			}
 		});
-
-		inbound.send(new GenericMessage<String>("hello"));
-
-		assertTrue(messageReceived.get());
+		MessageChannel registeredChannel = context.getBean("inbound", MessageChannel.class);
+		registeredChannel.send(new GenericMessage<String>("hello"));
+		assertTrue(originalMessageReceived.get());
+		assertTrue(tapMessageReceived.get());
 	}
 
 	@Test
-	public void testBiDirectionalRegistration() {
+	public void testFlowThroughRegisteredChannelFromOutboundToInbound() {
 		DirectChannel outbound = new DirectChannel();
 		DirectChannel inbound = new DirectChannel();
-
 		registry.outbound("foo", outbound);
 		registry.inbound("foo", inbound);
-
 		final AtomicBoolean messageReceived = new AtomicBoolean();
 		inbound.subscribe(new MessageHandler() {
 			@Override
@@ -150,8 +135,37 @@ public class LocalChannelRegistryTests {
 				assertEquals("hello", message.getPayload());
 			}
 		});
-
 		outbound.send(new GenericMessage<String>("hello"));
 		assertTrue(messageReceived.get());
 	}
+
+	@Test
+	public void testFlowThroughRegisteredChannelFromOutboundToInboundWithTap() {
+		DirectChannel outbound = new DirectChannel();
+		DirectChannel inbound = new DirectChannel();
+		DirectChannel tap = new DirectChannel();
+		registry.outbound("foo", outbound);
+		registry.inbound("foo", inbound);
+		registry.tap("foo", tap);
+		final AtomicBoolean originalMessageReceived = new AtomicBoolean();
+		final AtomicBoolean tapMessageReceived = new AtomicBoolean();
+		inbound.subscribe(new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				originalMessageReceived.set(true);
+				assertEquals("hello", message.getPayload());
+			}
+		});
+		tap.subscribe(new MessageHandler() {
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				tapMessageReceived.set(true);
+				assertEquals("hello", message.getPayload());
+			}
+		});
+		outbound.send(new GenericMessage<String>("hello"));
+		assertTrue(originalMessageReceived.get());
+		assertTrue(tapMessageReceived.get());
+	}
+
 }
