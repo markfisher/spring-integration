@@ -28,25 +28,20 @@ public abstract class AbstractReplyProducingPostProcessingMessageHandler
 
 	private volatile boolean postProcessWithinAdvice = true;
 
-	public void setPostProcessWithinAdvice(boolean postProcessWithinAdvice) {
-		this.postProcessWithinAdvice = postProcessWithinAdvice;
-	}
-
 	/**
-	 * Returns true if the post processing should occur within
+	 * Specify whether the post processing should occur within
 	 * the scope of any configured advice classes. If false, the
 	 * post processing will occur after the advice chain returns. Default true.
-	 * @return true if post processing should be within any advice or if
-	 * there is no advice chain.
+	 * This is only applicable if there is in fact an advice chain present.
 	 */
-	protected boolean isPostProcessWithinAdviceIfPresent() {
-		return !this.hasAdviceChain() || this.postProcessWithinAdvice;
+	public void setPostProcessWithinAdvice(boolean postProcessWithinAdvice) {
+		this.postProcessWithinAdvice = postProcessWithinAdvice;
 	}
 
 	@Override
 	protected final Object handleRequestMessage(Message<?> requestMessage) {
 		Object result = this.doHandleRequestMessage(requestMessage);
-		if (this.isPostProcessWithinAdviceIfPresent()) {
+		if (!this.hasAdviceChain() || this.postProcessWithinAdvice) {
 			this.postProcess(requestMessage, result);
 		}
 		return result;
@@ -55,7 +50,7 @@ public abstract class AbstractReplyProducingPostProcessingMessageHandler
 	@Override
 	protected final Object doInvokeAdvisedRequestHandler(Message<?> message) {
 		Object result = super.doInvokeAdvisedRequestHandler(message);
-		if (!this.isPostProcessWithinAdviceIfPresent()) {
+		if (!this.postProcessWithinAdvice) {
 			this.postProcess(message, result);
 		}
 		return result;
